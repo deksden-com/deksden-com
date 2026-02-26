@@ -1,0 +1,53 @@
+---
+title: "Index files (index.md) for memory banks"
+description: "How index.md improves data transparency and speeds up agent context collection."
+date: "2025-08-14"
+slug: "index-files-index-md"
+lang: "en"
+tags: ["memory-bank", "agentic-workflows", "context-engineering"]
+draft: false
+translationKey: "index-files-index-md"
+updatedAt: ""
+cover: ""
+canonical: ""
+---
+
+# Index files (index.md) for memory banks
+
+In large memory-bank folders, a plain file list is often not enough: an agent can see filenames but still does not understand what each document contains.
+
+That is why I keep dedicated `index.md` files in key directories (`architecture/`, `guides/`, `epics/`) with short descriptions for each file.
+
+## What goes into index.md
+
+- file list for the folder;
+- one or two sentence description per file;
+- descriptions sourced from frontmatter `description`;
+- optional multi-level overview for deep folder trees.
+
+## Why this helps
+
+Without an index, the agent must:
+
+- open many files blindly;
+- guess from filenames;
+- or rely on keyword search and risk missing the right file.
+
+With a good index, agents can quickly decide what to read and what to skip. That saves tokens, time, and orchestrator context budget.
+
+## How to keep indexes fresh
+
+A practical workflow:
+
+1. Assign a filesystem helper agent.
+2. Run updates in parallel across major memory-bank branches.
+3. For each file, update `description`, then regenerate `index.md`.
+4. Add exclusions and custom rules for special directories.
+
+This works better than a pure script when descriptions need semantic summarization.
+
+## Bottom line
+
+`index.md` is a small mechanism with a big impact on agent navigation quality.
+
+Source inspiration: [Telegram post #46](https://t.me/deksden_notes/46)

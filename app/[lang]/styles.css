@@ -1,0 +1,270 @@
+:root {
+  --dd-bg: #f9f9f9;
+  --dd-fg: #050505;
+  --dd-muted: #525252;
+  --dd-border: #d4d4d4;
+  --dd-tag-bg: #efefef;
+}
+
+.dark {
+  --dd-bg: #090909;
+  --dd-fg: #f5f5f5;
+  --dd-muted: #a3a3a3;
+  --dd-border: #404040;
+  --dd-tag-bg: #171717;
+}
+
+html,
+body {
+  background: var(--dd-bg);
+  color: var(--dd-fg);
+  font-family:
+    var(--font-ibm-plex-mono),
+    Menlo,
+    Monaco,
+    'Courier New',
+    monospace;
+}
+
+main {
+  padding-top: 1rem;
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition:
+    opacity 0.18s ease,
+    text-decoration-thickness 0.18s ease,
+    color 0.18s ease;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.dd-top-header {
+  background: #050505;
+  border-bottom: 1px solid #1a1a1a;
+  color: #f5f5f5;
+  margin: -1.5rem -1rem 1.5rem;
+  padding: 1rem;
+}
+
+.dd-top-header a {
+  color: #f5f5f5;
+  text-decoration: none;
+}
+
+.dd-top-header-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.dd-brand-block {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.dd-site-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dd-main-nav {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.dd-nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  position: relative;
+  transition: opacity 0.18s ease;
+}
+
+.dd-nav-link:hover {
+  opacity: 0.78;
+}
+
+.dd-nav-link.active::after {
+  background: #ffffff;
+  border-radius: 2px;
+  bottom: -0.45rem;
+  content: '';
+  height: 5px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.dd-control-block {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dd-top-header .dd-locale-switch {
+  border: 0;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.dd-top-header .dd-locale-switch button {
+  border: 0;
+  color: #f5f5f5;
+  padding: 0;
+  transition: opacity 0.18s ease;
+}
+
+.dd-top-header .dd-locale-switch button:hover {
+  opacity: 0.78;
+}
+
+.dd-top-header .dd-locale-switch button.active {
+  background: transparent;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.dd-mode-icon-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #f5f5f5;
+  cursor: pointer;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.dd-mode-icon-button:hover {
+  color: #ffffff;
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.dd-mode-icon-button svg {
+  height: 17px;
+  width: 17px;
+}
+
+.dd-social-row {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.dd-social-link {
+  align-items: center;
+  border: 0;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  width: 30px;
+}
+
+.dd-social-link:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.dd-social-icon {
+  filter: invert(1);
+  height: 16px;
+  width: 16px;
+}
+
+.dd-content {
+  max-width: 760px;
+}
+
+.dd-article-list {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.dd-article-item {
+  border-top: 1px solid var(--dd-border);
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+}
+
+.dd-article-meta {
+  color: var(--dd-muted);
+  font-size: 0.95rem;
+}
+
+.dd-tags {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.dd-tag {
+  background: var(--dd-tag-bg);
+  border: 1px solid var(--dd-border);
+  border-radius: 2px;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.5rem;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.dd-tag:hover {
+  border-color: var(--dd-fg);
+  transform: translateY(-1px);
+}
+
+.dd-locale-switch {
+  border: 1px solid var(--dd-border);
+  display: inline-flex;
+}
+
+.dd-locale-switch button {
+  background: transparent;
+  border: 0;
+  color: var(--dd-fg);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+}
+
+.dd-locale-switch button.active {
+  background: var(--dd-fg);
+  color: var(--dd-bg);
+}
+
+@media (max-width: 900px) {
+  .dd-top-header-row {
+    flex-direction: column;
+  }
+
+  .dd-brand-block {
+    width: 100%;
+  }
+
+  .dd-control-block {
+    justify-content: flex-start;
+  }
+}

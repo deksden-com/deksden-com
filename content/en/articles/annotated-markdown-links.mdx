@@ -1,0 +1,53 @@
+---
+title: "Annotated markdown links for context engineering"
+description: "A markdown link pattern that helps agents decide what to read and what to skip."
+date: "2025-08-14"
+slug: "annotated-markdown-links"
+lang: "en"
+tags: ["memory-bank", "context-engineering", "markdown"]
+draft: false
+translationKey: "annotated-markdown-links"
+updatedAt: ""
+cover: ""
+canonical: ""
+---
+
+# Annotated markdown links for context engineering
+
+A regular markdown link tells an agent where to go, but not why the file matters.
+
+I use annotated links: each link is accompanied by a short semantic description of the target file.
+
+## Format
+
+Working convention:
+
+- square brackets contain an absolute path from project root;
+- parentheses contain the relative working path;
+- then a short description from the target file `description`.
+
+Example:
+
+```md
+[.memory-bank/product.md](../memory-bank/product.md): Product goals, constraints, and prioritization criteria.
+```
+
+## Why it matters
+
+Annotated links make read/skip decisions faster:
+
+- read now if relevant;
+- postpone if secondary;
+- skip if out of scope.
+
+Without descriptions, agents guess from filenames and produce noisier context.
+
+## Why absolute paths in link text
+
+In long-running workflows, agents often lose track of the current directory. Absolute paths reduce navigation mistakes and keep references consistent.
+
+## Bottom line
+
+It is a tiny markdown convention, but it significantly improves context routing quality.
+
+Source inspiration: [Telegram post #47](https://t.me/deksden_notes/47)
