@@ -32,6 +32,13 @@ pnpm i -g vercel
 vercel login
 ```
 
+If CLI says `The specified token is not valid`, run:
+
+```bash
+vercel logout
+vercel login
+```
+
 3. Initial production deploy (also links the directory and creates `.vercel`):
 
 ```bash
