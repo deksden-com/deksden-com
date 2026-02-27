@@ -55,11 +55,14 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
 
   return (
     <header className="dd-top-header">
-      <div className="dd-top-header-row">
-        <div className="dd-brand-block">
-          <Link href={`/${locale}`} className="dd-site-logo">
-            deksDen.com
-          </Link>
+      <div className="dd-top-header-container">
+        <div className="dd-top-header-inner">
+          <div className="dd-header-left">
+            <Link href={`/${locale}`} className="dd-site-logo">
+              deksDen.com
+            </Link>
+          </div>
+
           <nav aria-label="Main menu" className="dd-main-nav">
             {navItems.map(item => {
               const isActive =
@@ -75,25 +78,31 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
               )
             })}
           </nav>
+
+          <div className="dd-header-right">
+            <LocaleSwitch locale={locale} />
+            <ThemeModeSwitch locale={locale} />
+          </div>
         </div>
-        <div className="dd-control-block">
-          <LocaleSwitch locale={locale} />
-          <ThemeModeSwitch locale={locale} />
+
+        <div className="dd-social-row">
+          {socialLinks.map(item => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={item.label}
+              className="dd-social-link"
+            >
+              <img
+                src={item.iconPath}
+                alt={item.label}
+                className="dd-social-icon"
+              />
+            </a>
+          ))}
         </div>
-      </div>
-      <div className="dd-social-row">
-        {socialLinks.map(item => (
-          <a
-            key={item.href}
-            href={item.href}
-            target="_blank"
-            rel="noreferrer noopener"
-            aria-label={item.label}
-            className="dd-social-link"
-          >
-            <img src={item.iconPath} alt={item.label} className="dd-social-icon" />
-          </a>
-        ))}
       </div>
     </header>
   )

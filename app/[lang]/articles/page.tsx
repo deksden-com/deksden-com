@@ -166,9 +166,9 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
       </div>
 
       {selectedTags.length > 0 ? (
-        <section aria-label={localized.filteredBy}>
+        <section aria-label={localized.filter}>
           <p>
-            {localized.filteredBy}: <strong>{selectedTags.join(', ')}</strong>
+            <strong>{localized.filter}</strong>
           </p>
           <div className="dd-tags">
             {selectedTags.map(tag => (
@@ -179,7 +179,7 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
                   selectedTags.filter(item => item !== tag)
                 )}
                 className="dd-tag selected"
-                title={`${localized.filteredBy}: ${selectedTags.join(', ')}`}
+                title={localized.filter}
               >
                 #{tag} ×
               </Link>
