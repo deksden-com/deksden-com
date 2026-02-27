@@ -205,14 +205,14 @@ a:hover {
 
 .dd-article-list {
   list-style: none;
-  margin: 2rem 0 0;
+  margin: 1.25rem 0;
   padding: 0;
 }
 
 .dd-article-item {
   border-top: 1px solid var(--dd-border);
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
 }
 
 .dd-article-meta {
@@ -225,7 +225,7 @@ a:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
 }
 
 .dd-tag {

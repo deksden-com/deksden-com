@@ -146,27 +146,6 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
         <Link href={`/${lang}/tags`}>{localized.tags}:</Link>
       </p>
 
-      {selectedTags.length > 0 ? (
-        <div className="dd-tags" aria-label={localized.filteredBy}>
-          {selectedTags.map(tag => (
-            <Link
-              key={`selected-${tag}`}
-              href={buildArticlesHref(
-                lang,
-                selectedTags.filter(item => item !== tag)
-              )}
-              className="dd-tag selected"
-              title={`${localized.filteredBy}: ${selectedTags.join(', ')}`}
-            >
-              #{tag} ×
-            </Link>
-          ))}
-          <Link href={`/${lang}/articles`} className="dd-tag">
-            {localized.backToAll}
-          </Link>
-        </div>
-      ) : null}
-
       <div className="dd-tags" aria-label={localized.tags}>
         {visibleTagEntries.map(entry => {
           const isSelected = selectedTags.includes(entry.tag)
@@ -187,9 +166,31 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
       </div>
 
       {selectedTags.length > 0 ? (
-        <p>
-          {localized.filteredBy}: <strong>{selectedTags.join(', ')}</strong>
-        </p>
+        <section aria-label={localized.filteredBy}>
+          <p>
+            {localized.filteredBy}: <strong>{selectedTags.join(', ')}</strong>
+          </p>
+          <div className="dd-tags">
+            {selectedTags.map(tag => (
+              <Link
+                key={`selected-${tag}`}
+                href={buildArticlesHref(
+                  lang,
+                  selectedTags.filter(item => item !== tag)
+                )}
+                className="dd-tag selected"
+                title={`${localized.filteredBy}: ${selectedTags.join(', ')}`}
+              >
+                #{tag} ×
+              </Link>
+            ))}
+            {selectedTags.length >= 2 ? (
+              <Link href={`/${lang}/articles`} className="dd-tag">
+                {localized.backToAll}
+              </Link>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       {visibleArticles.length === 0 ? (
