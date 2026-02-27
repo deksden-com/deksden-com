@@ -30,6 +30,7 @@ Notes:
 
 - `slug` must match filename.
 - Slug format: ASCII lower-case kebab-case.
+- Keep tags in ASCII kebab-case as well (`^[a-z0-9]+(?:-[a-z0-9]+)*$`).
 
 ## Drafts and publish
 

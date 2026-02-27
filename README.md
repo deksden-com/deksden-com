@@ -12,5 +12,6 @@ Personal website and article catalog for `deksden.com`.
 - `docs/site-invariants.md` - fixed product and content decisions.
 - `docs/content-workflow.md` - how to publish through Git.
 - `docs/deployment-vercel.md` - distribution and deployment via Vercel.
+- `docs/tags.md` - tags routes and filtering.
 - `docs/templates/article.ru.template.mdx` - RU article template.
 - `docs/templates/article.en.template.mdx` - EN article template.

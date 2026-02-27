@@ -20,6 +20,7 @@ export const copyByLocale: Record<
   {
     home: string
     articles: string
+    tags: string
     subtitle: string
     footer: string
     noArticles: string
@@ -27,28 +28,33 @@ export const copyByLocale: Record<
     read: string
     minutes: string
     backToAll: string
+    viewAll: string
   }
 > = {
   ru: {
     home: 'Главная',
     articles: 'Статьи',
+    tags: 'Теги',
     subtitle: 'Личный сайт и каталог статей.',
     footer: 'Контент публикуется через Git.',
     noArticles: 'Пока нет опубликованных статей.',
-    filteredBy: 'Фильтр по тегу',
+    filteredBy: 'Фильтр по тегам',
     read: 'Чтение',
     minutes: 'мин',
-    backToAll: 'Показать все'
+    backToAll: 'Показать все',
+    viewAll: 'Посмотреть все'
   },
   en: {
     home: 'Home',
     articles: 'Articles',
+    tags: 'Tags',
     subtitle: 'Personal site and article catalog.',
     footer: 'Content is published via Git.',
     noArticles: 'No published articles yet.',
-    filteredBy: 'Filtered by tag',
+    filteredBy: 'Filtered by tags',
     read: 'Read',
     minutes: 'min',
-    backToAll: 'Show all'
+    backToAll: 'Show all',
+    viewAll: 'View all'
   }
 }

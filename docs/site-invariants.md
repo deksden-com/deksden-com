@@ -8,6 +8,8 @@ This document locks base decisions for `deksden.com` so implementation stays con
   - `/[locale]` - short "about me" home page.
   - `/[locale]/articles` - article catalog.
   - `/[locale]/articles/[slug]` - article page.
+  - `/[locale]/tags` - all tags index.
+  - `/[locale]/tags/[tag]` - tag page (aggregates content types).
 - Locales: `ru`, `en`.
 - Theme modes: `light`, `dark`, `system`.
 - Community/auth area: deferred; route can exist as placeholder.
@@ -38,6 +40,16 @@ Why this approach:
 - Only `tags`.
 - `categories` are not used in v1.
 - Tag vocabulary is free-form (no controlled dictionary in v1).
+- Tag format must match slug pattern: `^[a-z0-9]+(?:-[a-z0-9]+)*$` (ASCII kebab-case).
+
+## Tag navigation and filtering
+
+- Articles filter URL:
+  - `/${locale}/articles?tags=tag1,tag2`
+  - Filtering is AND: article must contain all selected tags.
+- Tag pages:
+  - `/${locale}/tags` lists all tags.
+  - `/${locale}/tags/[tag]` groups content by type (v1: only articles) and links into the corresponding content section with a prefilled filter.
 
 ## Metadata contract
 

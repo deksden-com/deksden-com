@@ -10,11 +10,14 @@ import {
   type SiteLocale
 } from '@/lib/site-config'
 
+const tagPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
 type ArticlesPageProps = Readonly<{
   params?: Promise<{
     lang?: string
   }>
   searchParams: Promise<{
+    tags?: string
     tag?: string
   }>
 }>
@@ -28,6 +31,44 @@ function formatDate(locale: SiteLocale, value: string): string {
       day: 'numeric'
     }
   )
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+function parseSelectedTags(input: { tags?: string; tag?: string }): string[] {
+  const raw = (input.tags || input.tag || '').trim()
+  if (!raw) {
+    return []
+  }
+
+  const decoded = safeDecode(raw)
+  const parts = decoded.split(',').map(value => value.trim()).filter(Boolean)
+  const unique = new Set<string>()
+
+  for (const part of parts) {
+    if (tagPattern.test(part)) {
+      unique.add(part)
+    }
+  }
+
+  return [...unique].sort((a, b) => a.localeCompare(b))
+}
+
+function encodeTagsQuery(tags: string[]): string {
+  return tags.map(value => encodeURIComponent(value)).join(',')
+}
+
+function buildArticlesHref(lang: SiteLocale, selectedTags: string[]): string {
+  if (selectedTags.length === 0) {
+    return `/${lang}/articles`
+  }
+  return `/${lang}/articles?tags=${encodeTagsQuery(selectedTags)}`
 }
 
 export async function generateMetadata(props: ArticlesPageProps): Promise<Metadata> {
@@ -67,37 +108,87 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
   }
 
   const localized = copyByLocale[lang]
-  const { tag: selectedTag } = await props.searchParams
-  const [articles, tags] = await Promise.all([
+  const selectedTags = parseSelectedTags(await props.searchParams)
+  const [articles, allTags] = await Promise.all([
     getArticles(lang),
     getTagCounts(lang)
   ])
 
-  const visibleArticles = selectedTag
-    ? articles.filter(article => article.tags.includes(selectedTag))
-    : articles
+  const visibleArticles =
+    selectedTags.length > 0
+      ? articles.filter(article =>
+          selectedTags.every(tag => article.tags.includes(tag))
+        )
+      : articles
+
+  const tagCountsByTag = new Map<string, number>()
+  for (const entry of allTags) {
+    tagCountsByTag.set(entry.tag, 0)
+  }
+  for (const article of visibleArticles) {
+    for (const tag of article.tags) {
+      tagCountsByTag.set(tag, (tagCountsByTag.get(tag) || 0) + 1)
+    }
+  }
+
+  const visibleTagEntries = allTags.filter(entry => {
+    const count = tagCountsByTag.get(entry.tag) || 0
+    const isSelected = selectedTags.includes(entry.tag)
+    return isSelected || count > 0
+  })
 
   return (
     <main className="dd-content">
       <h1>{localized.articles}</h1>
       <p>{localized.subtitle}</p>
 
-      <div className="dd-tags">
-        {tags.map(tag => (
-          <Link
-            key={tag.tag}
-            href={`/${lang}/articles?tag=${encodeURIComponent(tag.tag)}`}
-            className="dd-tag"
-          >
-            {tag.tag} ({tag.count})
+      <p>
+        <Link href={`/${lang}/tags`}>{localized.tags}:</Link>
+      </p>
+
+      {selectedTags.length > 0 ? (
+        <div className="dd-tags" aria-label={localized.filteredBy}>
+          {selectedTags.map(tag => (
+            <Link
+              key={`selected-${tag}`}
+              href={buildArticlesHref(
+                lang,
+                selectedTags.filter(item => item !== tag)
+              )}
+              className="dd-tag selected"
+              title={`${localized.filteredBy}: ${selectedTags.join(', ')}`}
+            >
+              #{tag} ×
+            </Link>
+          ))}
+          <Link href={`/${lang}/articles`} className="dd-tag">
+            {localized.backToAll}
           </Link>
-        ))}
+        </div>
+      ) : null}
+
+      <div className="dd-tags" aria-label={localized.tags}>
+        {visibleTagEntries.map(entry => {
+          const isSelected = selectedTags.includes(entry.tag)
+          const nextSelected = isSelected
+            ? selectedTags.filter(tag => tag !== entry.tag)
+            : [...selectedTags, entry.tag].sort((a, b) => a.localeCompare(b))
+          const count = tagCountsByTag.get(entry.tag) || 0
+          return (
+            <Link
+              key={entry.tag}
+              href={buildArticlesHref(lang, nextSelected)}
+              className={isSelected ? 'dd-tag selected' : 'dd-tag'}
+            >
+              {entry.tag} ({count})
+            </Link>
+          )
+        })}
       </div>
 
-      {selectedTag ? (
+      {selectedTags.length > 0 ? (
         <p>
-          {localized.filteredBy}: <strong>{selectedTag}</strong>{' '}
-          <Link href={`/${lang}/articles`}>{localized.backToAll}</Link>
+          {localized.filteredBy}: <strong>{selectedTags.join(', ')}</strong>
         </p>
       ) : null}
 
@@ -125,7 +216,7 @@ export default async function ArticlesPage(props: ArticlesPageProps) {
                   {article.tags.map(tag => (
                     <Link
                       key={`${article.slug}-${tag}`}
-                      href={`/${lang}/articles?tag=${encodeURIComponent(tag)}`}
+                      href={buildArticlesHref(lang, [tag])}
                       className="dd-tag"
                     >
                       #{tag}
