@@ -13,5 +13,6 @@ Personal website and article catalog for `deksden.com`.
 - `docs/content-workflow.md` - how to publish through Git.
 - `docs/deployment-vercel.md` - distribution and deployment via Vercel.
 - `docs/tags.md` - tags routes and filtering.
+- `docs/specs/SPEC-001-content-platform.md` - platform v2 plan (dd-content + dd-admin + Supabase + beta/prod promotion).
 - `docs/templates/article.ru.template.mdx` - RU article template.
 - `docs/templates/article.en.template.mdx` - EN article template.
