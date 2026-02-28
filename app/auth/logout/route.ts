@@ -25,9 +25,17 @@ function getSupabaseAnonKey(): string {
   )
 }
 
-export async function POST(request: Request) {
+function safeNext(value: string | undefined): string {
+  const raw = (value || '').trim()
+  if (!raw) return '/'
+  if (!raw.startsWith('/')) return '/'
+  if (raw.startsWith('//')) return '/'
+  return raw
+}
+
+async function signOutAndRedirect(request: Request) {
   const url = new URL(request.url)
-  const next = url.searchParams.get('next') || '/'
+  const next = safeNext(url.searchParams.get('next') || undefined)
 
   const cookieStore = await cookies()
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
@@ -44,5 +52,15 @@ export async function POST(request: Request) {
   })
 
   await supabase.auth.signOut()
-  return NextResponse.redirect(new URL(next, url.origin))
+
+  // Important: for POST logout flows we must redirect with 303 so the browser follows with GET.
+  return NextResponse.redirect(new URL(next, url.origin), 303)
+}
+
+export async function GET(request: Request) {
+  return signOutAndRedirect(request)
+}
+
+export async function POST(request: Request) {
+  return signOutAndRedirect(request)
 }
