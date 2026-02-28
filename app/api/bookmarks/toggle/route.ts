@@ -18,17 +18,39 @@ function safeNext(value: string | null, fallback: string): string {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+async function resolveCanonicalArticleId(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, 
+  articleId: string,
+  translationKey: string
+): Promise<string> {
+  if (translationKey) {
+    const { data, error } = await supabase
+      .from('article_public')
+      .select('id')
+      .eq('lang', 'ru')
+      .eq('translation_key', translationKey)
+      .maybeSingle()
+
+    if (!error && data?.id) {
+      return String(data.id)
+    }
+  }
+
+  return articleId
+}
+
 export async function POST(request: Request) {
   const form = await request.formData()
   const lang = safeLang(form.get('lang')?.toString() || null)
+
   const articleId = (form.get('article_id')?.toString() || '').trim()
+  const translationKey = (form.get('translation_key')?.toString() || '').trim()
 
   const fallbackNext = `/${lang}/account`
   const next = safeNext(form.get('next')?.toString() || null, fallbackNext)
 
-  if (!uuidPattern.test(articleId)) {
-    const url = new URL(next, request.url)
-    return NextResponse.redirect(url, 303)
+  if (!translationKey && !uuidPattern.test(articleId)) {
+    return NextResponse.redirect(new URL(next, request.url), 303)
   }
 
   const supabase = await createSupabaseServerClient()
@@ -40,26 +62,39 @@ export async function POST(request: Request) {
     return NextResponse.redirect(loginUrl, 303)
   }
 
-  const { data: existing, error: selectError } = await supabase
+  const canonicalArticleId = await resolveCanonicalArticleId(
+    supabase,
+    articleId,
+    translationKey
+  )
+
+  if (!uuidPattern.test(canonicalArticleId)) {
+    return NextResponse.redirect(new URL(next, request.url), 303)
+  }
+
+  const userId = userRes.user.id
+
+  const { data: existing, error: existingError } = await supabase
     .from('bookmarks')
     .select('article_id')
-    .eq('user_id', userRes.user.id)
-    .eq('article_id', articleId)
+    .eq('user_id', userId)
+    .eq('article_id', canonicalArticleId)
     .maybeSingle()
 
-  if (!selectError && existing) {
+  if (!existingError && existing) {
     await supabase
       .from('bookmarks')
       .delete()
-      .eq('user_id', userRes.user.id)
-      .eq('article_id', articleId)
-  } else {
-    await supabase.from('bookmarks').insert({
-      user_id: userRes.user.id,
-      article_id: articleId
-    })
+      .eq('user_id', userId)
+      .eq('article_id', canonicalArticleId)
+
+    return NextResponse.redirect(new URL(next, request.url), 303)
   }
 
-  const url = new URL(next, request.url)
-  return NextResponse.redirect(url, 303)
+  await supabase.from('bookmarks').insert({
+    user_id: userId,
+    article_id: canonicalArticleId
+  })
+
+  return NextResponse.redirect(new URL(next, request.url), 303)
 }

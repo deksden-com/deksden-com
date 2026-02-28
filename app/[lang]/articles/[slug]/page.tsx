@@ -40,7 +40,7 @@ async function loadArticle(params: { lang: SiteLocale; slug: string }) {
   const { data: article, error: articleError } = await supabase
     .from('article_public')
     .select(
-      'id,slug,lang,title,description,date,updated_at,tags,tier,preview_md,toc_md'
+      'id,slug,lang,title,description,date,updated_at,tags,tier,translation_key,preview_md,toc_md'
     )
     .eq('lang', params.lang)
     .eq('slug', params.slug)
@@ -143,13 +143,30 @@ export default async function ArticlePage(props: ArticlePageProps) {
     `/${lang}/articles/${slug}`
   )}`
 
+  const translationKey = String((article as any).translation_key || '').trim()
+  const supabaseForBookmarks = user || translationKey ? await createSupabaseServerClient() : null
+
+  let canonicalArticleId = String(article.id)
+  if (translationKey && supabaseForBookmarks) {
+    const { data: canonicalRow, error: canonicalError } = await supabaseForBookmarks
+      .from('article_public')
+      .select('id')
+      .eq('lang', 'ru')
+      .eq('translation_key', translationKey)
+      .maybeSingle()
+
+    if (!canonicalError && canonicalRow?.id) {
+      canonicalArticleId = String(canonicalRow.id)
+    }
+  }
+
   let isBookmarked = false
-  if (user) {
-    const supabase = await createSupabaseServerClient()
-    const { data: bookmarkRow, error: bookmarkError } = await supabase
+  if (user && supabaseForBookmarks) {
+    const { data: bookmarkRow, error: bookmarkError } = await supabaseForBookmarks
       .from('bookmarks')
       .select('article_id')
-      .eq('article_id', String(article.id))
+      .eq('user_id', user.id)
+      .eq('article_id', canonicalArticleId)
       .maybeSingle()
 
     if (!bookmarkError && bookmarkRow) {
@@ -179,19 +196,29 @@ export default async function ArticlePage(props: ArticlePageProps) {
           <Link href={loginHref} className="dd-tag">
             {lang === 'ru' ? 'Войти, чтобы добавить в закладки' : 'Sign in to bookmark'}
           </Link>
+        ) : isBookmarked ? (
+          <>
+            <span className="dd-tag selected">
+              {lang === 'ru' ? 'В закладках!' : 'Bookmarked!'}
+            </span>
+            <form action="/api/bookmarks/toggle" method="post">
+              <input type="hidden" name="lang" value={lang} />
+              <input type="hidden" name="article_id" value={canonicalArticleId} />
+              <input type="hidden" name="translation_key" value={translationKey} />
+              <input type="hidden" name="next" value={`/${lang}/articles/${slug}`} />
+              <button type="submit" className="dd-tag">
+                {lang === 'ru' ? 'Убрать из закладок' : 'Remove bookmark'}
+              </button>
+            </form>
+          </>
         ) : (
           <form action="/api/bookmarks/toggle" method="post">
             <input type="hidden" name="lang" value={lang} />
-            <input type="hidden" name="article_id" value={String(article.id)} />
+            <input type="hidden" name="article_id" value={canonicalArticleId} />
+            <input type="hidden" name="translation_key" value={translationKey} />
             <input type="hidden" name="next" value={`/${lang}/articles/${slug}`} />
-            <button type="submit" className={isBookmarked ? 'dd-tag selected' : 'dd-tag'}>
-              {lang === 'ru'
-                ? isBookmarked
-                  ? 'В закладках (убрать)'
-                  : 'Добавить в закладки'
-                : isBookmarked
-                  ? 'Bookmarked (remove)'
-                  : 'Add to bookmarks'}
+            <button type="submit" className="dd-tag">
+              {lang === 'ru' ? 'Добавить в закладки' : 'Add to bookmarks'}
             </button>
           </form>
         )}

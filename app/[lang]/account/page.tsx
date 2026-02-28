@@ -49,22 +49,49 @@ export default async function AccountPage(props: AccountPageProps) {
     .limit(100)
 
   const bookmarks = !bookmarksError && Array.isArray(bookmarkRows) ? bookmarkRows : []
-  const bookmarkArticleIds = bookmarks.map(row => String((row as any).article_id)).filter(Boolean)
+  const bookmarkedArticleIds = bookmarks
+    .map(row => String((row as any).article_id))
+    .filter(Boolean)
 
-  const { data: bookmarkArticles, error: bookmarkArticlesError } =
-    bookmarkArticleIds.length > 0
+  const { data: canonicalArticles, error: canonicalArticlesError } =
+    bookmarkedArticleIds.length > 0
       ? await supabase
           .from('article_public')
-          .select('id,slug,lang,title,description,date,updated_at,tier')
-          .in('id', bookmarkArticleIds)
+          .select('id,slug,lang,title,description,date,updated_at,tier,translation_key')
+          .in('id', bookmarkedArticleIds)
       : { data: [], error: null }
 
-  const bookmarkArticlesById = new Map<string, any>()
-  if (!bookmarkArticlesError && Array.isArray(bookmarkArticles)) {
-    for (const article of bookmarkArticles) {
-      bookmarkArticlesById.set(String((article as any).id), article)
+  const canonicalArticleById = new Map<string, any>()
+  const translationKeys: string[] = []
+
+  if (!canonicalArticlesError && Array.isArray(canonicalArticles)) {
+    for (const article of canonicalArticles) {
+      const id = String((article as any).id)
+      canonicalArticleById.set(id, article)
+      const key = String((article as any).translation_key || '').trim()
+      if (key) translationKeys.push(key)
     }
   }
+
+  const uniqueTranslationKeys = Array.from(new Set(translationKeys))
+
+  const { data: localizedArticles, error: localizedArticlesError } =
+    uniqueTranslationKeys.length > 0
+      ? await supabase
+          .from('article_public')
+          .select('id,slug,lang,title,description,date,updated_at,tier,translation_key')
+          .eq('lang', lang)
+          .in('translation_key', uniqueTranslationKeys)
+      : { data: [], error: null }
+
+  const localizedArticleByKey = new Map<string, any>()
+  if (!localizedArticlesError && Array.isArray(localizedArticles)) {
+    for (const article of localizedArticles) {
+      const key = String((article as any).translation_key || '').trim()
+      if (key) localizedArticleByKey.set(key, article)
+    }
+  }
+
 
 
   const connectedProviders = Array.from(
@@ -116,7 +143,11 @@ export default async function AccountPage(props: AccountPageProps) {
           <ul className="dd-article-list">
             {bookmarks
               .map(row => {
-                const article = bookmarkArticlesById.get(String((row as any).article_id))
+                const canonical = canonicalArticleById.get(String((row as any).article_id))
+                if (!canonical) return null
+
+                const key = String((canonical as any).translation_key || '').trim()
+                const article = key ? (localizedArticleByKey.get(key) || canonical) : canonical
                 if (!article) return null
                 const articleLang = String((article as any).lang || lang)
                 const articleSlug = String((article as any).slug || '')
@@ -132,6 +163,7 @@ export default async function AccountPage(props: AccountPageProps) {
                         <form action="/api/bookmarks/toggle" method="post">
                           <input type="hidden" name="lang" value={lang} />
                           <input type="hidden" name="article_id" value={String((row as any).article_id)} />
+                          <input type="hidden" name="translation_key" value={String((canonical as any).translation_key || '').trim()} />
                           <input type="hidden" name="next" value={`/${lang}/account`} />
                           <button type="submit" className="dd-tag">
                             {lang === 'ru' ? 'Убрать из закладок' : 'Remove'}
