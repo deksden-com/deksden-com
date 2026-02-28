@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { type SiteLocale } from '@/lib/site-config'
 
@@ -12,8 +12,26 @@ type AccountIdentitiesClientProps = Readonly<{
   connectedProviders: string[]
 }>
 
+type Copy = Readonly<{
+  title: string
+  actions: string
+  linkGithub: string
+  linkGoogle: string
+  githubLinked: string
+  googleLinked: string
+  unlink: string
+  noUrl: string
+  noIdentity: string
+  lastMethod: string
+  manualLinkingHint: string
+  missingLink: string
+  missingUnlink: string
+  confirmUnlink: (provider: 'github' | 'google') => string
+  formatAuthError: (code: string, description?: string | null) => string
+}>
+
 export function AccountIdentitiesClient({ lang, identities, connectedProviders }: AccountIdentitiesClientProps) {
-  const t = copy(lang)
+  const t = useMemo(() => copy(lang), [lang])
   const connected = useMemo(() => new Set(connectedProviders), [connectedProviders])
   const identityByProvider = useMemo(() => {
     const map = new Map<string, IdentityRef>()
@@ -25,6 +43,20 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash || hash.length < 2) return
+
+    const params = new URLSearchParams(hash.slice(1))
+    const errorCode = params.get('error_code') || params.get('error')
+    const errorDescription = params.get('error_description')
+
+    if (errorCode) {
+      setError(t.formatAuthError(errorCode, errorDescription))
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+  }, [t])
 
   function setNextCookie() {
     const isSecure = window.location.protocol === 'https:'
@@ -183,7 +215,7 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
   )
 }
 
-function copy(lang: SiteLocale) {
+function copy(lang: SiteLocale): Copy {
   if (lang === 'en') {
     return {
       title: 'Connected accounts',
@@ -200,7 +232,16 @@ function copy(lang: SiteLocale) {
       missingLink: 'This build does not support linking identities (missing method).',
       missingUnlink: 'This build does not support unlinking identities (missing method).',
       confirmUnlink: (provider: 'github' | 'google') =>
-        `Unlink ${provider}? You may lose access if you don't have another sign-in method.`
+        `Unlink ${provider}? You may lose access if you don't have another sign-in method.`,
+      formatAuthError: (code: string, description?: string | null) => {
+        if (code === 'identity_already_exists') {
+          return (
+            'This GitHub account is already linked to another user. ' +
+            'Sign out, sign in with GitHub, then link Google from Account.'
+          )
+        }
+        return description ? `${code}: ${description}` : code
+      }
     }
   }
 
@@ -219,6 +260,15 @@ function copy(lang: SiteLocale) {
     missingLink: 'В этой сборке нет поддержки привязки identity (нет метода).',
     missingUnlink: 'В этой сборке нет поддержки отвязки identity (нет метода).',
     confirmUnlink: (provider: 'github' | 'google') =>
-      `Отвязать ${provider}? Если не будет другого способа входа, можно потерять доступ.`
+      `Отвязать ${provider}? Если не будет другого способа входа, можно потерять доступ.`,
+    formatAuthError: (code: string, description?: string | null) => {
+      if (code == 'identity_already_exists') {
+        return (
+          'Этот GitHub-аккаунт уже привязан к другому пользователю. ' +
+          'Выйдите, войдите через GitHub, затем привяжите Google в кабинете.'
+        )
+      }
+      return description ? `${code}: ${description}` : code
+    }
   }
 }
