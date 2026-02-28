@@ -46,8 +46,13 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
       const supabase = createSupabaseBrowserClient()
       setNextCookie()
 
+      if (typeof (supabase.auth as any).linkIdentity !== 'function') {
+        setError(t.missingLink)
+        return
+      }
+
       const redirectTo = `${window.location.origin}/auth/callback`
-      const { data, error } = await supabase.auth.linkIdentity({
+      const { data, error } = await (supabase.auth as any).linkIdentity({
         provider,
         options: { redirectTo }
       })
@@ -66,6 +71,8 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
       }
 
       window.location.assign(data.url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setBusy(false)
     }
@@ -91,10 +98,15 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
     setBusy(true)
     try {
       const supabase = createSupabaseBrowserClient()
-      const { error } = await supabase.auth.unlinkIdentity({
+      if (typeof (supabase.auth as any).unlinkIdentity !== 'function') {
+        setError(t.missingUnlink)
+        return
+      }
+
+      const { error } = await (supabase.auth as any).unlinkIdentity({
         provider,
         identity_id: identity.identity_id
-      } as any)
+      })
 
       if (error) {
         const hint = error.message.toLowerCase().includes('manual')
@@ -105,6 +117,8 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
       }
 
       window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setBusy(false)
     }
@@ -112,6 +126,7 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
 
   const githubConnected = connected.has('github')
   const googleConnected = connected.has('google')
+  const canUnlink = identities.length > 1
 
   return (
     <section aria-label={t.title}>
@@ -121,16 +136,18 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
         {githubConnected ? (
           <span className="dd-tag selected dd-identity">
             <span>{t.githubLinked}</span>
-            <button
-              type="button"
-              className="dd-identity-remove"
-              disabled={busy}
-              onClick={() => unlink('github')}
-              title={t.unlink}
-              aria-label={t.unlink}
-            >
-              ×
-            </button>
+            {canUnlink ? (
+              <button
+                type="button"
+                className="dd-identity-remove"
+                disabled={busy}
+                onClick={() => unlink('github')}
+                title={t.unlink}
+                aria-label={t.unlink}
+              >
+                ×
+              </button>
+            ) : null}
           </span>
         ) : (
           <button type="button" className="dd-tag" disabled={busy} onClick={() => link('github')}>
@@ -141,16 +158,18 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
         {googleConnected ? (
           <span className="dd-tag selected dd-identity">
             <span>{t.googleLinked}</span>
-            <button
-              type="button"
-              className="dd-identity-remove"
-              disabled={busy}
-              onClick={() => unlink('google')}
-              title={t.unlink}
-              aria-label={t.unlink}
-            >
-              ×
-            </button>
+            {canUnlink ? (
+              <button
+                type="button"
+                className="dd-identity-remove"
+                disabled={busy}
+                onClick={() => unlink('google')}
+                title={t.unlink}
+                aria-label={t.unlink}
+              >
+                ×
+              </button>
+            ) : null}
           </span>
         ) : (
           <button type="button" className="dd-tag" disabled={busy} onClick={() => link('google')}>
@@ -178,6 +197,8 @@ function copy(lang: SiteLocale) {
       noIdentity: 'Identity is missing.',
       lastMethod: 'Cannot unlink the last sign-in method.',
       manualLinkingHint: 'Enable Manual Linking in Supabase Auth settings.',
+      missingLink: 'This build does not support linking identities (missing method).',
+      missingUnlink: 'This build does not support unlinking identities (missing method).',
       confirmUnlink: (provider: 'github' | 'google') =>
         `Unlink ${provider}? You may lose access if you don't have another sign-in method.`
     }
@@ -195,6 +216,8 @@ function copy(lang: SiteLocale) {
     noIdentity: 'Не удалось найти identity для провайдера.',
     lastMethod: 'Нельзя отвязать последний способ входа.',
     manualLinkingHint: 'Включите Manual Linking в настройках Supabase Auth.',
+    missingLink: 'В этой сборке нет поддержки привязки identity (нет метода).',
+    missingUnlink: 'В этой сборке нет поддержки отвязки identity (нет метода).',
     confirmUnlink: (provider: 'github' | 'google') =>
       `Отвязать ${provider}? Если не будет другого способа входа, можно потерять доступ.`
   }
