@@ -26,9 +26,16 @@ export function LoginClient({ lang, next }: LoginClientProps) {
     setBusy(true)
     try {
       const supabase = createSupabaseBrowserClient()
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-        next
-      )}`
+      const isSecure = window.location.protocol === 'https:'
+      const cookieParts = [
+        `dd_auth_next=${encodeURIComponent(next)}`,
+        'Path=/',
+        'Max-Age=300',
+        'SameSite=Lax'
+      ]
+      if (isSecure) cookieParts.push('Secure')
+      document.cookie = cookieParts.join('; ')
+      const redirectTo = `${window.location.origin}/auth/callback`
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo }
