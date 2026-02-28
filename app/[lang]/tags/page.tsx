@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTagCounts } from '@/lib/articles'
 import { copyByLocale, getSiteUrl, isSiteLocale, type SiteLocale } from '@/lib/site-config'
+export const dynamic = 'force-dynamic'
 
 type TagsIndexPageProps = Readonly<{
   params?: Promise<{

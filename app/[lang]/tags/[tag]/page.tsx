@@ -6,10 +6,10 @@ import {
   copyByLocale,
   getSiteUrl,
   isSiteLocale,
-  siteConfig,
   type SiteLocale
 } from '@/lib/site-config'
 
+export const dynamic = 'force-dynamic'
 const tagPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 type TagPageProps = Readonly<{
@@ -36,17 +36,6 @@ function safeDecodeSegment(value: string): string {
   } catch {
     return value
   }
-}
-
-export async function generateStaticParams() {
-  const perLocale = await Promise.all(
-    siteConfig.locales.map(async lang => {
-      const tags = await getTagCounts(lang)
-      return tags.map(item => ({ lang, tag: item.tag }))
-    })
-  )
-
-  return perLocale.flat()
 }
 
 export async function generateMetadata(props: TagPageProps): Promise<Metadata> {
