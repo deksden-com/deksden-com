@@ -124,7 +124,7 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
             <button
               type="button"
               className="dd-identity-remove"
-              disabled={busy || identities.length <= 1}
+              disabled={busy}
               onClick={() => unlink('github')}
               title={t.unlink}
               aria-label={t.unlink}
@@ -144,7 +144,7 @@ export function AccountIdentitiesClient({ lang, identities, connectedProviders }
             <button
               type="button"
               className="dd-identity-remove"
-              disabled={busy || identities.length <= 1}
+              disabled={busy}
               onClick={() => unlink('google')}
               title={t.unlink}
               aria-label={t.unlink}
