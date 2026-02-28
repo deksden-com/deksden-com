@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
 import readingTime from 'reading-time'
+import { createSupabaseAnonClient } from '@/lib/supabase/anon'
 import { isSiteLocale, type SiteLocale } from '@/lib/site-config'
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -80,7 +81,19 @@ function parseArticleFrontmatter(
   }
 }
 
-export async function getArticles(locale: SiteLocale): Promise<ArticleCard[]> {
+function hasSupabaseEnv(): boolean {
+  const supabaseUrl = (
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_DD_COM_URL || ''
+  ).trim()
+  const supabaseKey = (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_DD_COM_PUBLISHABLE_APIKEY ||
+    ''
+  ).trim()
+  return Boolean(supabaseUrl && supabaseKey)
+}
+
+async function getArticlesFromFs(locale: SiteLocale): Promise<ArticleCard[]> {
   const articlesDir = path.join(process.cwd(), 'content', locale, 'articles')
   let entries: string[] = []
 
@@ -135,6 +148,46 @@ export async function getArticles(locale: SiteLocale): Promise<ArticleCard[]> {
   return publishedCards.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
+}
+
+export async function getArticles(locale: SiteLocale): Promise<ArticleCard[]> {
+  if (hasSupabaseEnv()) {
+    const client = createSupabaseAnonClient()
+    const { data, error } = await client
+      .from('article_public')
+      .select('slug,lang,title,description,date,updated_at,tags,translation_key,preview_md')
+      .eq('lang', locale)
+      .order('date', { ascending: false })
+
+    if (error) {
+      throw new Error(`Failed to load articles from Supabase: ${error.message}`)
+    }
+
+    return (data || []).map(row => {
+      const preview = String((row as { preview_md?: unknown }).preview_md || '')
+      const minutes = Math.max(1, Math.round(readingTime(preview).minutes))
+
+      return {
+        title: String(row.title || '').trim(),
+        description: String(row.description || '').trim(),
+        date: String(row.date || '').trim(),
+        updatedAt:
+          String((row as { updated_at?: unknown }).updated_at || '').trim() ||
+          undefined,
+        slug: String(row.slug || '').trim(),
+        lang: locale,
+        tags: Array.isArray(row.tags)
+          ? row.tags.map(value => String(value).trim()).filter(Boolean)
+          : [],
+        readingTimeMinutes: minutes,
+        translationKey:
+          String((row as { translation_key?: unknown }).translation_key || '')
+            .trim() || undefined
+      } satisfies ArticleCard
+    })
+  }
+
+  return getArticlesFromFs(locale)
 }
 
 export async function getTagCounts(locale: SiteLocale): Promise<

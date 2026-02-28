@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
-import { proxy as nextraLocalesProxy } from 'nextra/locales'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 function requiredEnv(name: string, value: string | undefined): string {
   const trimmed = (value || '').trim()
@@ -25,37 +25,24 @@ function getSupabaseAnonKey(): string {
   )
 }
 
-export async function proxy(request: NextRequest) {
-  const host = request.headers.get('host') || ''
+export async function POST(request: Request) {
+  const url = new URL(request.url)
+  const next = url.searchParams.get('next') || '/'
 
-  const response =
-    host === 'www.deksden.com'
-      ? (() => {
-          const nextUrl = request.nextUrl.clone()
-          nextUrl.host = 'deksden.com'
-          return NextResponse.redirect(nextUrl, 308)
-        })()
-      : nextraLocalesProxy(request) || NextResponse.next({ request })
-
+  const cookieStore = await cookies()
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     cookies: {
       getAll() {
-        return request.cookies.getAll()
+        return cookieStore.getAll()
       },
       setAll(cookiesToSet) {
         for (const cookie of cookiesToSet) {
-          response.cookies.set(cookie.name, cookie.value, cookie.options)
+          cookieStore.set(cookie.name, cookie.value, cookie.options)
         }
       }
     }
   })
 
-  await supabase.auth.getUser()
-  return response
-}
-
-export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest|_pagefind|.*\\..*).*)'
-  ]
+  await supabase.auth.signOut()
+  return NextResponse.redirect(new URL(next, url.origin))
 }

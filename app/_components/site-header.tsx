@@ -80,6 +80,9 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
           </nav>
 
           <div className="dd-header-right">
+            <Link href={`/${locale}/account`} className="dd-nav-link">
+              {locale === 'ru' ? 'Аккаунт' : 'Account'}
+            </Link>
             <LocaleSwitch locale={locale} />
             <ThemeModeSwitch locale={locale} />
           </div>
