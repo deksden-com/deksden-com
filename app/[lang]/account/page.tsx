@@ -27,11 +27,12 @@ export default async function AccountPage(props: AccountPageProps) {
   const supabase = await createSupabaseServerClient()
   const { data } = await supabase.auth.getUser()
 
-  const { data: identitiesData } = await supabase.auth.getUserIdentities()
 
   if (!data.user) {
     redirect(`/${lang}/login?next=${encodeURIComponent(`/${lang}/account`)}`)
   }
+
+  const { data: identitiesData } = await supabase.auth.getUserIdentities()
 
   const { data: entitlements } = await supabase
     .from('entitlements')
@@ -40,7 +41,9 @@ export default async function AccountPage(props: AccountPageProps) {
 
   const premium = isActivePremium(entitlements || [])
 
-  const connectedProviders = (identitiesData?.identities || []).map(i => i.provider)
+  const connectedProviders = Array.from(
+    new Set((identitiesData?.identities || []).map(i => i.provider))
+  )
 
   return (
     <main className="dd-content">
@@ -58,7 +61,11 @@ export default async function AccountPage(props: AccountPageProps) {
         {lang === 'ru' ? 'Способы входа' : 'Sign-in methods'}: {connectedProviders.join(', ') || '—'}
       </p>
 
-      <AccountIdentitiesClient lang={lang} connectedProviders={connectedProviders} />
+      <AccountIdentitiesClient
+        lang={lang}
+        identities={(identitiesData?.identities || []).map(i => ({ provider: i.provider, identity_id: i.identity_id }))}
+        connectedProviders={connectedProviders}
+      />
 
       <p>
         <Link href={`/${lang}/articles`}>{localized.articles}</Link>
