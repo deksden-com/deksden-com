@@ -27,6 +27,7 @@ function getSupabaseAnonKey(): string {
 
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') || ''
+  const pathname = request.nextUrl.pathname
 
   const response =
     host === 'www.deksden.com'
@@ -35,7 +36,9 @@ export async function proxy(request: NextRequest) {
           nextUrl.host = 'deksden.com'
           return NextResponse.redirect(nextUrl, 308)
         })()
-      : nextraLocalesProxy(request) || NextResponse.next({ request })
+      : pathname === '/auth' || pathname.startsWith('/auth/')
+        ? NextResponse.next({ request })
+        : nextraLocalesProxy(request) || NextResponse.next({ request })
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     cookies: {
