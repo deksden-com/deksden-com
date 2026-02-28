@@ -143,6 +143,20 @@ export default async function ArticlePage(props: ArticlePageProps) {
     `/${lang}/articles/${slug}`
   )}`
 
+  let isBookmarked = false
+  if (user) {
+    const supabase = await createSupabaseServerClient()
+    const { data: bookmarkRow, error: bookmarkError } = await supabase
+      .from('bookmarks')
+      .select('article_id')
+      .eq('article_id', String(article.id))
+      .maybeSingle()
+
+    if (!bookmarkError && bookmarkRow) {
+      isBookmarked = true
+    }
+  }
+
   return (
     <main className="dd-content">
       <p>
@@ -159,6 +173,29 @@ export default async function ArticlePage(props: ArticlePageProps) {
           : ''}
         {tier === 'premium' ? ' · premium' : ''}
       </p>
+
+      <div className="dd-tags" aria-label="Bookmarks">
+        {!user ? (
+          <Link href={loginHref} className="dd-tag">
+            {lang === 'ru' ? 'Войти, чтобы добавить в закладки' : 'Sign in to bookmark'}
+          </Link>
+        ) : (
+          <form action="/api/bookmarks/toggle" method="post">
+            <input type="hidden" name="lang" value={lang} />
+            <input type="hidden" name="article_id" value={String(article.id)} />
+            <input type="hidden" name="next" value={`/${lang}/articles/${slug}`} />
+            <button type="submit" className={isBookmarked ? 'dd-tag selected' : 'dd-tag'}>
+              {lang === 'ru'
+                ? isBookmarked
+                  ? 'В закладках (убрать)'
+                  : 'Добавить в закладки'
+                : isBookmarked
+                  ? 'Bookmarked (remove)'
+                  : 'Add to bookmarks'}
+            </button>
+          </form>
+        )}
+      </div>
 
       {tags.length > 0 ? (
         <div className="dd-tags" aria-label={localized.tags}>
