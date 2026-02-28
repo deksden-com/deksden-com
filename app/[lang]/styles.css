@@ -296,6 +296,39 @@ a:hover {
   opacity: 1;
 }
 
+.dd-plan-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 1rem 0;
+}
+
+.dd-plan {
+  background: var(--dd-tag-bg);
+  border: 1px solid var(--dd-border);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.dd-plan.current {
+  border-color: var(--dd-fg);
+  box-shadow: 0 0 0 1px var(--dd-fg);
+}
+
+.dd-plan-price {
+  font-size: 1.25rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.dd-plan-list {
+  margin: 0.5rem 0 0.9rem;
+  padding-left: 1.1rem;
+}
+
+.dd-plan-list li {
+  margin: 0.25rem 0;
+}
+
 .dd-locale-switch {
   border: 1px solid var(--dd-border);
   display: inline-flex;

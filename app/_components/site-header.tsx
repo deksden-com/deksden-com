@@ -46,10 +46,12 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
     locale === 'ru'
       ? [
           { href: `/${locale}/articles`, label: 'Статьи' },
+          { href: `/${locale}/pricing`, label: 'Цены' },
           { href: `/${locale}/about`, label: 'Обо мне' }
         ]
       : [
           { href: `/${locale}/articles`, label: 'Articles' },
+          { href: `/${locale}/pricing`, label: 'Pricing' },
           { href: `/${locale}/about`, label: 'About me' }
         ]
 

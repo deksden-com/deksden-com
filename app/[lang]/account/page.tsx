@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { copyByLocale, isSiteLocale, type SiteLocale } from '@/lib/site-config'
+import { copyByLocale, isSiteLocale } from '@/lib/site-config'
 import { AccountIdentitiesClient } from './identities-client'
 
 export const dynamic = 'force-dynamic'
@@ -40,6 +40,8 @@ export default async function AccountPage(props: AccountPageProps) {
     .eq('kind', 'premium')
 
   const premium = isActivePremium(entitlements || [])
+  const currentPlan: 'free' | 'premium' = premium ? 'premium' : 'free'
+
 
   const connectedProviders = Array.from(
     new Set((identitiesData?.identities || []).map(i => i.provider))
@@ -68,8 +70,42 @@ export default async function AccountPage(props: AccountPageProps) {
       />
 
       <p>
+        <Link href={`/${lang}/pricing`}>{localized.pricing}</Link>
+        {' · '}
         <Link href={`/${lang}/articles`}>{localized.articles}</Link>
       </p>
+
+      <section aria-label="Subscription">
+        <h2>{lang === 'ru' ? 'Подписка' : 'Subscription'}</h2>
+        {premium ? (
+          <form action="/api/billing/cancel" method="post">
+            <input type="hidden" name="lang" value={lang} />
+            <button type="submit" className="dd-tag">
+              {lang === 'ru' ? 'Отменить подписку' : 'Cancel subscription'}
+            </button>
+          </form>
+        ) : (
+          <form action="/api/billing/checkout" method="post">
+            <input type="hidden" name="lang" value={lang} />
+            <input type="hidden" name="plan" value="premium" />
+            <input type="hidden" name="action" value="subscribe" />
+            <button type="submit" className="dd-tag">
+              {lang === 'ru' ? 'Перейти на Premium' : 'Upgrade to Premium'}
+            </button>
+          </form>
+        )}
+      </section>
+
+      <section aria-label="Account actions">
+        <h2>{lang === 'ru' ? 'Аккаунт' : 'Account'}</h2>
+        <form action="/api/account/delete" method="post">
+          <input type="hidden" name="lang" value={lang} />
+          <input type="hidden" name="plan" value={currentPlan} />
+          <button type="submit" className="dd-tag">
+            {lang === 'ru' ? 'Удалить аккаунт' : 'Delete account'}
+          </button>
+        </form>
+      </section>
 
       <form action={`/auth/logout?next=${encodeURIComponent(`/${lang}`)}`} method="post">
         <button type="submit" className="dd-tag">

@@ -21,6 +21,7 @@ export const copyByLocale: Record<
     home: string
     articles: string
     tags: string
+    pricing: string
     filter: string
     subtitle: string
     footer: string
@@ -36,6 +37,7 @@ export const copyByLocale: Record<
     home: 'Главная',
     articles: 'Статьи',
     tags: 'Теги',
+    pricing: 'Цены',
     filter: 'Фильтр',
     subtitle: 'Личный сайт и каталог статей.',
     footer: 'Контент публикуется через Git.',
@@ -50,6 +52,7 @@ export const copyByLocale: Record<
     home: 'Home',
     articles: 'Articles',
     tags: 'Tags',
+    pricing: 'Pricing',
     filter: 'Filter',
     subtitle: 'Personal site and article catalog.',
     footer: 'Content is published via Git.',
