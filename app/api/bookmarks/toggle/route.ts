@@ -18,8 +18,12 @@ function safeNext(value: string | null, fallback: string): string {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+function wantsJson(request: Request): boolean {
+  return (request.headers.get('accept') || '').includes('application/json')
+}
+
 async function resolveCanonicalArticleId(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, 
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   articleId: string,
   translationKey: string
 ): Promise<string> {
@@ -40,6 +44,8 @@ async function resolveCanonicalArticleId(
 }
 
 export async function POST(request: Request) {
+  const json = wantsJson(request)
+
   const form = await request.formData()
   const lang = safeLang(form.get('lang')?.toString() || null)
 
@@ -50,6 +56,9 @@ export async function POST(request: Request) {
   const next = safeNext(form.get('next')?.toString() || null, fallbackNext)
 
   if (!translationKey && !uuidPattern.test(articleId)) {
+    if (json) {
+      return NextResponse.json({ error: 'invalid_article' }, { status: 400 })
+    }
     return NextResponse.redirect(new URL(next, request.url), 303)
   }
 
@@ -59,6 +68,11 @@ export async function POST(request: Request) {
   if (!userRes.user) {
     const loginUrl = new URL(`/${lang}/login`, request.url)
     loginUrl.searchParams.set('next', next)
+
+    if (json) {
+      return NextResponse.json({ error: 'unauthorized', login: loginUrl.pathname + loginUrl.search }, { status: 401 })
+    }
+
     return NextResponse.redirect(loginUrl, 303)
   }
 
@@ -69,6 +83,9 @@ export async function POST(request: Request) {
   )
 
   if (!uuidPattern.test(canonicalArticleId)) {
+    if (json) {
+      return NextResponse.json({ error: 'invalid_canonical_article' }, { status: 400 })
+    }
     return NextResponse.redirect(new URL(next, request.url), 303)
   }
 
@@ -81,20 +98,49 @@ export async function POST(request: Request) {
     .eq('article_id', canonicalArticleId)
     .maybeSingle()
 
-  if (!existingError && existing) {
-    await supabase
+  if (existingError) {
+    if (json) {
+      return NextResponse.json({ error: existingError.message }, { status: 500 })
+    }
+    return NextResponse.redirect(new URL(next, request.url), 303)
+  }
+
+  if (existing) {
+    const { error: deleteError } = await supabase
       .from('bookmarks')
       .delete()
       .eq('user_id', userId)
       .eq('article_id', canonicalArticleId)
 
+    if (deleteError) {
+      if (json) {
+        return NextResponse.json({ error: deleteError.message }, { status: 500 })
+      }
+      return NextResponse.redirect(new URL(next, request.url), 303)
+    }
+
+    if (json) {
+      return NextResponse.json({ bookmarked: false })
+    }
+
     return NextResponse.redirect(new URL(next, request.url), 303)
   }
 
-  await supabase.from('bookmarks').insert({
+  const { error: insertError } = await supabase.from('bookmarks').insert({
     user_id: userId,
     article_id: canonicalArticleId
   })
+
+  if (insertError) {
+    if (json) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+    return NextResponse.redirect(new URL(next, request.url), 303)
+  }
+
+  if (json) {
+    return NextResponse.json({ bookmarked: true })
+  }
 
   return NextResponse.redirect(new URL(next, request.url), 303)
 }

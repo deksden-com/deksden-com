@@ -10,6 +10,7 @@ import {
   isSiteLocale,
   type SiteLocale
 } from '@/lib/site-config'
+import { BookmarkToggle } from './bookmark-toggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -191,38 +192,15 @@ export default async function ArticlePage(props: ArticlePageProps) {
         {tier === 'premium' ? ' · premium' : ''}
       </p>
 
-      <div className="dd-tags" aria-label="Bookmarks">
-        {!user ? (
-          <Link href={loginHref} className="dd-tag">
-            {lang === 'ru' ? 'Войти, чтобы добавить в закладки' : 'Sign in to bookmark'}
-          </Link>
-        ) : isBookmarked ? (
-          <>
-            <span className="dd-tag selected">
-              {lang === 'ru' ? 'В закладках!' : 'Bookmarked!'}
-            </span>
-            <form action="/api/bookmarks/toggle" method="post">
-              <input type="hidden" name="lang" value={lang} />
-              <input type="hidden" name="article_id" value={canonicalArticleId} />
-              <input type="hidden" name="translation_key" value={translationKey} />
-              <input type="hidden" name="next" value={`/${lang}/articles/${slug}`} />
-              <button type="submit" className="dd-tag">
-                {lang === 'ru' ? 'Убрать из закладок' : 'Remove bookmark'}
-              </button>
-            </form>
-          </>
-        ) : (
-          <form action="/api/bookmarks/toggle" method="post">
-            <input type="hidden" name="lang" value={lang} />
-            <input type="hidden" name="article_id" value={canonicalArticleId} />
-            <input type="hidden" name="translation_key" value={translationKey} />
-            <input type="hidden" name="next" value={`/${lang}/articles/${slug}`} />
-            <button type="submit" className="dd-tag">
-              {lang === 'ru' ? 'Добавить в закладки' : 'Add to bookmarks'}
-            </button>
-          </form>
-        )}
-      </div>
+      <BookmarkToggle
+        lang={lang}
+        loggedIn={Boolean(user)}
+        loginHref={loginHref}
+        articleId={canonicalArticleId}
+        translationKey={translationKey}
+        next={`/${lang}/articles/${slug}`}
+        initialBookmarked={isBookmarked}
+      />
 
       {tags.length > 0 ? (
         <div className="dd-tags" aria-label={localized.tags}>
