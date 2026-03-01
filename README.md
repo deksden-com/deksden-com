@@ -19,4 +19,4 @@ Personal website and article catalog for `deksden.com`.
 
 ## CI
 
-- Beta auto-deploy is configured in `.github/workflows/vercel-beta-production.yml` (requires GitHub secret `VERCEL_TOKEN`).
+- Beta deploys automatically from `develop` via Vercel (Project `deksden-com-beta` production branch = `develop`).
