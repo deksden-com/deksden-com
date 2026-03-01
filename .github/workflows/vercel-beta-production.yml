@@ -1,0 +1,41 @@
+name: Deploy beta (Vercel)
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: vercel-beta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERCEL_ORG_ID: team_xhZBlH4sSDf75aoVi5qjMpBp
+      VERCEL_PROJECT_ID: prj_GZM5T7t6gA7dOQh3O1Abyi5Hm8Ne
+      VERCEL_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy to Vercel (production alias)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "Missing GitHub secret: VERCEL_TOKEN" >&2
+            exit 1
+          fi
+          vercel deploy --prod --yes --token "${VERCEL_TOKEN}" --scope deksdens-projects

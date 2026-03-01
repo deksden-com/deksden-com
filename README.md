@@ -16,3 +16,7 @@ Personal website and article catalog for `deksden.com`.
 - `docs/specs/SPEC-001-content-platform.md` - platform v2 plan (dd-content + dd-admin + Supabase + beta/prod promotion).
 - `docs/templates/article.ru.template.mdx` - RU article template.
 - `docs/templates/article.en.template.mdx` - EN article template.
+
+## CI
+
+- Beta auto-deploy is configured in `.github/workflows/vercel-beta-production.yml` (requires GitHub secret `VERCEL_TOKEN`).

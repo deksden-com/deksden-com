@@ -16,6 +16,14 @@
   - short-lived branches
   - PR review before merge
   - merge commit triggers production deployment
+## Beta environment
+
+- Beta project: `deksden-com-beta` (aliases: `beta.deksden.com`).
+- Code branch: `develop`.
+- CI deploy: `.github/workflows/vercel-beta-production.yml` deploys **production** to the beta project on each push to `develop`.
+  - Required GitHub secret: `VERCEL_TOKEN` (a Vercel personal token).
+  - Note: this avoids needing to manually run `vercel --prod` to update `beta.deksden.com`.
+
 
 ## Vercel CLI setup
 
